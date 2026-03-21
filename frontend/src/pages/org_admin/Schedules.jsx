@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Calendar, Plus, Clock, Users, BookOpen, AlertCircle, Trash2, ArrowRight } from 'lucide-react';
+import { Calendar, Plus, Clock, Users, BookOpen, AlertCircle, Trash2, ArrowRight, Edit } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const OrgAdminSchedules = () => {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     
     const [form, setForm] = useState({
         name: '',
         subject: '',
         duration: '',
-        scheduledDate: ''
+        scheduledDate: '',
+        postponedDescription: '',
+        _id: null
     });
 
     useEffect(() => {
@@ -33,17 +36,46 @@ const OrgAdminSchedules = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.post('/exams', {
-                ...form,
-                duration: parseInt(form.duration)
-            });
-            setExams([...exams, res.data.data]);
+            if (isEditing) {
+                const res = await api.put(`/exams/${form._id}`, {
+                    ...form,
+                    duration: parseInt(form.duration)
+                });
+                setExams(exams.map(ex => ex._id === form._id ? res.data.data : ex));
+                toast.success('Exam Schedule Updated');
+            } else {
+                const res = await api.post('/exams', {
+                    ...form,
+                    duration: parseInt(form.duration)
+                });
+                setExams([...exams, res.data.data]);
+                toast.success('Exam Schedule Created');
+            }
             setShowModal(false);
-            setForm({ name: '', subject: '', duration: '', scheduledDate: '' });
-            toast.success('Exam Schedule Created');
+            setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', _id: null });
+            setIsEditing(false);
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to create schedule');
+            toast.error(err.response?.data?.error || 'Failed to save schedule');
         }
+    };
+
+    const handleEditClick = (exam) => {
+        setIsEditing(true);
+        setForm({
+            name: exam.name,
+            subject: exam.subject,
+            duration: exam.duration,
+            scheduledDate: exam.scheduledDate ? new Date(exam.scheduledDate).toISOString().slice(0, 16) : '',
+            postponedDescription: exam.postponedDescription || '',
+            _id: exam._id
+        });
+        setShowModal(true);
+    };
+
+    const handleAddNewClick = () => {
+        setIsEditing(false);
+        setForm({ name: '', subject: '', duration: '', scheduledDate: '', postponedDescription: '', _id: null });
+        setShowModal(true);
     };
 
     const handleDelete = async (id) => {
@@ -65,7 +97,7 @@ const OrgAdminSchedules = () => {
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Manage organization-wide assessments</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={handleAddNewClick}
                     className="px-8 py-4 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95 group"
                 >
                     <Plus size={18} className="group-hover:rotate-90 transition-transform" />
@@ -87,7 +119,7 @@ const OrgAdminSchedules = () => {
                         <h3 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-2">No Active Schedules</h3>
                         <p className="text-slate-500 font-medium">Create a new schedule to begin evaluating students.</p>
                         <button
-                            onClick={() => setShowModal(true)}
+                            onClick={handleAddNewClick}
                             className="mt-8 px-8 py-4 bg-slate-100 text-slate-600 rounded-[24px] font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
                         >
                             Create First Exam
@@ -118,6 +150,11 @@ const OrgAdminSchedules = () => {
                                             <td className="p-6">
                                                 <div className="font-medium text-slate-900 text-sm">{date.toLocaleDateString()}</div>
                                                 <div className="text-xs text-slate-500 font-bold">{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                {exam.postponedDescription && (
+                                                    <div className="mt-2 text-[10px] font-black text-rose-500 uppercase flex items-center gap-1">
+                                                        <AlertCircle size={10} /> {exam.postponedDescription}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="p-6">
                                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold border border-slate-100">
@@ -129,7 +166,21 @@ const OrgAdminSchedules = () => {
                                                     {isPast ? 'Expired' : 'Upcoming'}
                                                 </span>
                                             </td>
-                                            <td className="p-6 text-right">
+                                            <td className="p-6 text-right space-x-2">
+                                                <button
+                                                    onClick={() => handleEditClick(exam)}
+                                                    className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                    title="Edit Schedule"
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => window.location.href = `/org/exams/${exam._id}/questions`}
+                                                    className="px-4 py-2 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-brand-600 transition-colors"
+                                                    title="Manage Questions"
+                                                >
+                                                    Manage Questions
+                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(exam._id)}
                                                     className="w-10 h-10 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
@@ -151,7 +202,7 @@ const OrgAdminSchedules = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
                     <div className="bg-white rounded-[40px] p-10 w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-8">Schedule New Exam</h2>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-8">{isEditing ? 'Edit Schedule' : 'Schedule New Exam'}</h2>
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
@@ -203,6 +254,19 @@ const OrgAdminSchedules = () => {
                                 </div>
                             </div>
 
+                            {isEditing && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Postponed Description (Optional)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Reason for change..."
+                                        className="w-full bg-slate-50 border-2 border-transparent rounded-[20px] py-4 px-6 text-sm font-bold text-rose-600 focus:bg-white focus:border-rose-500 outline-none transition-all placeholder:text-slate-300"
+                                        value={form.postponedDescription}
+                                        onChange={e => setForm({ ...form, postponedDescription: e.target.value })}
+                                    />
+                                </div>
+                            )}
+
                             <div className="pt-6 flex gap-4">
                                 <button
                                     type="button"
@@ -215,7 +279,7 @@ const OrgAdminSchedules = () => {
                                     type="submit"
                                     className="flex-1 py-4 bg-slate-900 text-white rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all shadow-xl shadow-slate-200"
                                 >
-                                    Create Schedule
+                                    {isEditing ? 'Save Changes' : 'Create Schedule'}
                                 </button>
                             </div>
                         </form>

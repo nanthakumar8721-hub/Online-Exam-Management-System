@@ -6,7 +6,9 @@ const {
   updateExam,
   deleteExam,
   sendExamLinks,
-  addQuestionToExam
+  addQuestionToExam,
+  addMultipleQuestionsToExam,
+  removeQuestionFromExam
 } = require('../controllers/exams');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -19,15 +21,17 @@ router.use(protect);
 router
   .route('/')
   .get(getExams)
-  .post(authorize('admin', 'org_admin'), createExam);
+  .post(authorize('admin', 'org_admin', 'staff'), createExam);
 
 router
   .route('/:id')
   .get(getExam)
-  .put(authorize('admin', 'org_admin'), updateExam)
-  .delete(authorize('admin', 'org_admin'), deleteExam);
+  .put(authorize('admin', 'org_admin', 'staff'), updateExam)
+  .delete(authorize('admin', 'org_admin', 'staff'), deleteExam);
 
 router.post('/:id/questions', authorize('admin', 'org_admin', 'staff'), addQuestionToExam);
+router.post('/:id/questions/bulk', authorize('admin', 'org_admin', 'staff'), addMultipleQuestionsToExam);
+router.delete('/:id/questions/:questionId', authorize('admin', 'org_admin', 'staff'), removeQuestionFromExam);
 router.post('/:id/send-links', authorize('admin', 'org_admin'), sendExamLinks);
 
 module.exports = router;

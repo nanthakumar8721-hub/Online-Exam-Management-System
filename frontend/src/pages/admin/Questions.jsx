@@ -31,7 +31,7 @@ const QuestionBank = () => {
       const qRes = await api.get('/questions');
       setQuestions(qRes.data.data || []);
     } catch (err) {
-      toast.error('Neural Base Retrieval Failed');
+      toast.error('Failed to load questions');
     } finally {
       setLoading(false);
     }
@@ -39,14 +39,14 @@ const QuestionBank = () => {
 
   const handleAddQuestion = async (e) => {
     e.preventDefault();
-    if (!newQuestion.subject.trim()) return toast.error('Assign Category Required');
+    if (!newQuestion.subject.trim()) return toast.error('Subject is Required');
     if (newQuestion.options.some(opt => !opt.text.trim())) {
-      return toast.error('Incomplete Option Data Detected');
+      return toast.error('Please fill in all options');
     }
 
     try {
       await api.post('/questions', newQuestion);
-      toast.success('Matrix Logic Added', {
+      toast.success('Question Added', {
         style: { borderRadius: '16px', background: '#0f172a', color: '#fff' }
       });
       setShowQuestionModal(false);
@@ -63,18 +63,18 @@ const QuestionBank = () => {
       });
       fetchInitialData();
     } catch (err) {
-      toast.error('Protocol Write Error');
+      toast.error('Failed to add question');
     }
   };
 
   const handleDeleteQuestion = async (id) => {
-    if (!window.confirm('Purge this record from the matrix?')) return;
+    if (!window.confirm('Are you sure you want to delete this question?')) return;
     try {
       await api.delete(`/questions/${id}`);
-      toast.success('Record Erased');
+      toast.success('Question Deleted');
       fetchInitialData();
     } catch (err) {
-      toast.error('Deletion Protocal Failure');
+      toast.error('Failed to delete question');
     }
   };
 
@@ -91,15 +91,15 @@ const QuestionBank = () => {
     <div className="space-y-10 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic">NEURAL REPOSITORY</h1>
-          <p className="text-slate-500 font-medium">Manage and refine the core assessment matrix</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic">QUESTION BANK</h1>
+          <p className="text-slate-500 font-medium">Manage questions for exams</p>
         </div>
         <button
           onClick={() => setShowQuestionModal(true)}
           className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-600 transition-all active:scale-95 shadow-2xl shadow-slate-200 flex items-center gap-3 group"
         >
           <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-          Inject New Logic
+          Add Question
         </button>
       </div>
 
@@ -108,14 +108,14 @@ const QuestionBank = () => {
         <div className="w-full lg:w-72 space-y-4 shrink-0">
           <div className="glass-premium p-6 rounded-3xl border-white/40 shadow-xl">
             <h3 className="font-black text-slate-400 text-[10px] uppercase tracking-[0.3em] mb-6 px-2 flex items-center gap-2">
-              <Layers size={14} className="text-brand-600" /> Matrix Categories
+              <Layers size={14} className="text-brand-600" /> Subjects
             </h3>
             <div className="space-y-2">
               <button
                 onClick={() => setSelectedSubject(null)}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${!selectedSubject ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 scale-105' : 'hover:bg-brand-50 text-slate-600'}`}
               >
-                <span className="font-black text-[10px] uppercase tracking-widest">Global Scan</span>
+                <span className="font-black text-[10px] uppercase tracking-widest">All Subjects</span>
                 {!selectedSubject && <Check size={14} className="text-brand-400" />}
               </button>
 
@@ -133,7 +133,7 @@ const QuestionBank = () => {
 
             {uniqueSubjects.length === 0 && (
               <div className="mt-6 p-6 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Empty Grid</p>
+                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No Subjects Found</p>
               </div>
             )}
           </div>
@@ -141,8 +141,8 @@ const QuestionBank = () => {
           <div className="glass-premium p-6 rounded-3xl border-white/40 bg-brand-900 text-white shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/20 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
             <ShieldCheck size={32} className="text-brand-400 mb-4" />
-            <h4 className="font-black text-lg tracking-tighter uppercase italic leading-none mb-2">Matrix Integrity</h4>
-            <p className="text-brand-200/60 text-[10px] font-bold uppercase tracking-widest leading-relaxed">All logic units are encrypted and verified against the core proctoring engine.</p>
+            <h4 className="font-black text-lg tracking-tighter uppercase italic leading-none mb-2">Question Security</h4>
+            <p className="text-brand-200/60 text-[10px] font-bold uppercase tracking-widest leading-relaxed">All questions are securely stored.</p>
           </div>
         </div>
 
@@ -154,7 +154,7 @@ const QuestionBank = () => {
             </div>
             <input
               type="text"
-              placeholder="Query Matrix logic or subject identifiers..."
+              placeholder="Search questions or subjects..."
               className="flex-1 bg-transparent border-none py-4 px-2 outline-none font-black text-lg tracking-tight text-slate-900 placeholder:text-slate-300"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -176,7 +176,7 @@ const QuestionBank = () => {
                         {q.subject}
                       </span>
                       <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]">
-                        {q.marks} Logic Units
+                        {q.marks} Marks
                       </span>
                     </div>
                   </div>
@@ -217,9 +217,9 @@ const QuestionBank = () => {
               <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-inner group">
                 <Cpu className="text-slate-200 group-hover:text-brand-600 transition-colors animate-pulse" size={40} />
               </div>
-              <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Grid Scan Empty</h3>
-              <p className="text-slate-400 font-medium max-w-sm mx-auto mb-10 text-xs uppercase tracking-[0.2em] leading-relaxed">No logic units matching your query were found in the neural repository.</p>
-              <button onClick={() => { setSearchQuery(''); setSelectedSubject(null) }} className="font-black text-brand-600 hover:text-brand-700 underline underline-offset-[12px] uppercase tracking-widest text-[10px]">Reset Matrix Scan</button>
+              <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">No Questions Found</h3>
+              <p className="text-slate-400 font-medium max-w-sm mx-auto mb-10 text-xs uppercase tracking-[0.2em] leading-relaxed">No questions match your search.</p>
+              <button onClick={() => { setSearchQuery(''); setSelectedSubject(null) }} className="font-black text-brand-600 hover:text-brand-700 underline underline-offset-[12px] uppercase tracking-widest text-[10px]">Reset Search</button>
             </div>
           )}
         </div>
@@ -239,20 +239,20 @@ const QuestionBank = () => {
             </button>
 
             <div className="mb-16">
-              <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.4em] mb-4">Injection Protocol</h4>
-              <h2 className="text-6xl font-black text-slate-900 tracking-tighter italic leading-none">New Logic Unit</h2>
+              <h4 className="text-[10px] font-black text-brand-600 uppercase tracking-[0.4em] mb-4">New Entry</h4>
+              <h2 className="text-6xl font-black text-slate-900 tracking-tighter italic leading-none">Create Question</h2>
             </div>
 
             <form onSubmit={handleAddQuestion} className="space-y-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Assign Category</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Subject</label>
                   <div className="relative group/input">
                     <input
                       list="subjects-list"
                       required
                       className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 focus:bg-white focus:border-brand-600 outline-none transition-all font-black text-slate-900 text-xl tracking-tight"
-                      placeholder="e.g. CORE MATRIX"
+                      placeholder="e.g. Mathematics"
                       value={newQuestion.subject}
                       onChange={e => setNewQuestion({ ...newQuestion, subject: e.target.value.toUpperCase() })}
                     />
@@ -263,7 +263,7 @@ const QuestionBank = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Point weight</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Marks</label>
                   <div className="flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border-2 border-transparent focus-within:bg-white focus-within:border-brand-600 transition-all">
                     <button type="button" onClick={() => setNewQuestion(p => ({ ...p, marks: Math.max(1, p.marks - 1) }))} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-600 hover:text-white transition-all shadow-sm">-</button>
                     <input
@@ -280,19 +280,19 @@ const QuestionBank = () => {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Logic Description</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Question Text</label>
                 <textarea
                   required
                   rows="4"
                   className="w-full bg-slate-50 border-2 border-transparent rounded-3xl py-6 px-8 focus:bg-white focus:border-brand-600 outline-none transition-all font-black text-3xl text-slate-900 leading-tight tracking-tighter placeholder:text-slate-200"
-                  placeholder="Query parameters initialization..."
+                  placeholder="Enter your question here..."
                   value={newQuestion.questionText}
                   onChange={e => setNewQuestion({ ...newQuestion, questionText: e.target.value })}
                 ></textarea>
               </div>
 
               <div className="space-y-8">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 underline underline-offset-8">Option Branches (Toggle Correct Node)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 underline underline-offset-8">Options (Select the correct answer)</label>
                 <div className="grid grid-cols-1 gap-6">
                   {newQuestion.options.map((opt, i) => (
                     <div key={i} className={`flex gap-6 items-center p-4 rounded-2xl border-2 transition-all relative overflow-hidden group/opt ${opt.isCorrect ? 'border-emerald-500 bg-emerald-500/5 shadow-xl shadow-emerald-900/10' : 'border-slate-50 bg-slate-50 focus-within:border-brand-600 focus-within:bg-white'}`}>
@@ -309,7 +309,7 @@ const QuestionBank = () => {
                       <input
                         type="text"
                         required
-                        placeholder={`Logic vector ${String.fromCharCode(65 + i)}...`}
+                        placeholder={`Option ${String.fromCharCode(65 + i)}...`}
                         className="flex-1 bg-transparent border-none focus:ring-0 font-black text-2xl text-slate-900 placeholder:text-slate-100 italic"
                         value={opt.text}
                         onChange={e => {
@@ -325,7 +325,7 @@ const QuestionBank = () => {
 
               <button type="submit" className="w-full py-6 bg-slate-900 text-white rounded-3xl text-2xl font-black italic tracking-tighter hover:bg-brand-600 transition-all shadow-3xl shadow-slate-200 flex items-center justify-center gap-6 active:scale-95 group">
                 <Zap size={32} className="group-hover:animate-bounce text-brand-400" />
-                LEGITIMIZE LOGIC UNIT
+                SAVE QUESTION
               </button>
             </form>
           </div>

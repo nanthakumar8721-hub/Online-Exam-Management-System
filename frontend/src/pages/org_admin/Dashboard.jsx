@@ -35,8 +35,8 @@ const OrgAdminDashboard = () => {
         <div className="space-y-12 animate-in fade-in duration-700">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">{org?.name || 'Organization HQ'}</h1>
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em]">Organization Administration Terminal</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">{org?.name || 'Organization Dashboard'}</h1>
+                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em]">Manage your organization and users</p>
                 </div>
                 <button
                     onClick={() => navigate('/org/members')}
@@ -95,7 +95,7 @@ const OrgAdminDashboard = () => {
                     </div>
 
                     <div className="glass-premium p-12 rounded-[48px] border-white/40 shadow-xl space-y-6">
-                        <h3 className="font-black text-xl text-slate-900 tracking-tighter uppercase italic mb-8">Contact Matrix</h3>
+                        <h3 className="font-black text-xl text-slate-900 tracking-tighter uppercase italic mb-8">Contact Information</h3>
                         {[
                             { icon: Mail, label: 'Email', value: org.email },
                             { icon: Phone, label: 'Phone', value: org.phone },

@@ -9,26 +9,26 @@ const Landing = () => {
 
   const features = [
     {
-      title: 'Military-Grade Security',
-      desc: 'Advanced JWT-based protection with multi-layer role verification.',
+      title: 'High Security',
+      desc: 'Advanced protection with multi-layer role verification.',
       icon: Shield,
       gradient: 'from-blue-600 to-indigo-600'
     },
     {
-      title: 'AI-Powered Monitoring',
-      desc: 'Real-time proctoring with intelligent tab-switch and behavior tracking.',
+      title: 'Smart Monitoring',
+      desc: 'Real-time proctoring with intelligent tab-switch tracking.',
       icon: Activity,
       gradient: 'from-rose-500 to-orange-500'
     },
     {
       title: 'Dynamic Questioning',
-      desc: 'Intelligent question delivery with randomized pools and rich media support.',
+      desc: 'Randomized question delivery with rich media support.',
       icon: BookOpen,
       gradient: 'from-emerald-500 to-teal-500'
     },
     {
       title: 'Analytics Engine',
-      desc: 'Deep-dive performance metrics and automated, unbiased grading.',
+      desc: 'Performance review and automated grading.',
       icon: CheckCircle,
       gradient: 'from-amber-500 to-orange-600'
     }
@@ -77,16 +77,16 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-md rounded-full border border-white/40 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span className="text-xs font-black uppercase tracking-widest text-slate-600">Now with AI Proctoring</span>
+            <span className="text-xs font-black uppercase tracking-widest text-slate-600">Smart Proctoring</span>
           </div>
 
           <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            Evolve Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-indigo-500 to-blue-600">Examination</span> Strategy.
+            Better Online <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-indigo-500 to-blue-600">Exams</span> For Everyone.
           </h1>
 
           <p className="max-w-2xl text-xl text-slate-500 font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-10 delay-200 duration-1000">
-            The world's most sophisticated online assessment platform. Built for absolute integrity and a seamless user journey.
+            A simple and secure online exam platform. Built for fairness and a smooth experience.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-5 animate-in fade-in slide-in-from-bottom-12 delay-300 duration-1000">

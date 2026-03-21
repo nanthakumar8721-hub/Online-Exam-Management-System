@@ -51,17 +51,25 @@ const ExamWindow = () => {
     }
   };
 
-  const handleViolation = useCallback((type) => {
+  const handleViolation = useCallback((type, options = {}) => {
     if (!exam || !exam.settings.preventTabSwitch) return;
 
     setViolations(prev => {
-      const newCount = prev + 1;
       const max = exam.settings.maxViolations || 3;
+      const newCount = options.immediateKick ? max : prev + 1;
 
-      toast.error(`Security Incident: ${type} (${newCount}/${max})`, {
-        icon: '⚠️',
-        style: { background: '#991b1b', color: '#fff', borderRadius: '12px', fontWeight: 'bold' }
-      });
+      if (options.immediateKick) {
+        toast.error(`CRITICAL BREACH: ${type}. Exam Terminated.`, {
+          icon: '🚨',
+          style: { background: '#991b1b', color: '#fff', borderRadius: '12px', fontWeight: 'bold' },
+          duration: 8000
+        });
+      } else {
+        toast.error(`Security Incident: ${type} (${newCount}/${max})`, {
+          icon: '⚠️',
+          style: { background: '#991b1b', color: '#fff', borderRadius: '12px', fontWeight: 'bold' }
+        });
+      }
 
       if (socket) {
         socket.emit('exam-alert', {
@@ -76,16 +84,18 @@ const ExamWindow = () => {
       api.post('/logs', {
         examId: id,
         activity: type,
-        details: `Integrity breach ${newCount} of ${max}`
+        details: options.immediateKick ? `Immediate termination: ${type}` : `Integrity breach ${newCount} of ${max}`
       });
 
       if (newCount >= max) {
-        toast.error('Multiple Security Breaches. Terminating Session...');
+        if (!options.immediateKick) {
+            toast.error('Multiple Security Breaches. Terminating Session...');
+        }
         handleSubmit();
       }
       return newCount;
     });
-  }, [exam, socket, id, user]);
+  }, [exam, socket, id, user, handleSubmit]);
 
   const handleVisibilityChange = useCallback(() => {
     if (document.hidden) {
@@ -93,29 +103,53 @@ const ExamWindow = () => {
     }
   }, [handleViolation]);
 
-  useEffect(() => {
-    fetchExam();
-    const newSocket = io('http://localhost:5000');
-    setSocket(newSocket);
+  const handleFullscreenChange = useCallback(() => {
+    if (!document.fullscreenElement) {
+      setIsFullscreen(false);
+      handleViolation('Lockdown Escape');
+    } else {
+      setIsFullscreen(true);
+    }
+  }, [handleViolation]);
 
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setIsFullscreen(false);
-        handleViolation('Lockdown Escape');
-      } else {
-        setIsFullscreen(true);
+  useEffect(() => {
+    const loadExam = async () => {
+      try {
+        const res = await api.get(`/exams/${id}`);
+        const examData = res.data.data;
+        const startDate = new Date(examData.scheduledDate);
+        const endDate = new Date(startDate.getTime() + examData.duration * 60000);
+        const now = new Date();
+
+        // Calculate the actual remaining time in seconds
+        const diffInSeconds = Math.floor((endDate.getTime() - now.getTime()) / 1000);
+        
+        // Ensure they never get more than the total duration, even if they join early
+        const actualTimeLeft = Math.min(examData.duration * 60, diffInSeconds);
+
+        if (actualTimeLeft <= 0 || examData.status === 'completed') {
+          toast.error('This exam has expired and is no longer accessible.');
+          navigate('/student/exams');
+          return;
+        }
+
+        setExam(examData);
+        setTimeLeft(actualTimeLeft);
+      } catch (err) {
+        toast.error('Initialization Failed');
+        navigate('/student');
       }
     };
+    if (id) {
+      loadExam();
+    }
+  }, [id, navigate]);
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      newSocket.close();
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [id, handleVisibilityChange, handleViolation]);
+  useEffect(() => {
+    const newSocket = io('http://localhost:5000');
+    setSocket(newSocket);
+    return () => newSocket.close();
+  }, []);
 
   useEffect(() => {
     if (socket && exam) {
@@ -123,40 +157,74 @@ const ExamWindow = () => {
     }
   }, [socket, exam, id]);
 
-  const fetchExam = async () => {
-    try {
-      const res = await api.get(`/exams/${id}`);
-      setExam(res.data.data);
-      setTimeLeft(res.data.data.duration * 60);
+  useEffect(() => {
+    const handleGlobalKeys = (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+        toast.error('Control Restricted: DevTools Locked', { icon: '🛡️' });
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        toast.error('Action Restricted: You cannot exit the exam until the duration finishes.', { icon: '⚠️' });
+      }
+    };
 
-      document.addEventListener('contextmenu', e => e.preventDefault());
-      document.addEventListener('keydown', handleGlobalKeys);
+    const disableContextMenu = (e) => e.preventDefault();
 
-      return () => {
-        document.removeEventListener('contextmenu', e => e.preventDefault());
-        document.removeEventListener('keydown', handleGlobalKeys);
-      };
-    } catch (err) {
-      toast.error('Initialization Failed');
-      navigate('/student');
-    }
-  };
-
-  const handleGlobalKeys = (e) => {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+    const handleBeforeUnload = (e) => {
       e.preventDefault();
-      toast.error('Control Restricted: DevTools Locked', { icon: '🛡️' });
+      e.returnValue = 'You cannot exit the exam until the duration time finishes.';
+      return e.returnValue;
+    };
+
+    const handlePopState = () => {
+      window.history.pushState(null, null, window.location.href);
+      toast.error('Navigation Restricted: You cannot leave this page.', { icon: '⚠️' });
+    };
+
+    // Block back button explicitly
+    window.history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    document.addEventListener('contextmenu', disableContextMenu);
+    document.addEventListener('keydown', handleGlobalKeys);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('contextmenu', disableContextMenu);
+      document.removeEventListener('keydown', handleGlobalKeys);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [handleFullscreenChange, handleVisibilityChange]);
+
+  const handleSubmit = useCallback(async () => {
+    try {
+      await api.post('/results/submit', { examId: id, userAnswers: answers });
+      toast.success('Grid Transmission Successful');
+      navigate('/student/results');
+    } catch (err) {
+      toast.error('Transmission Failed. Retry Protocol Handled.');
     }
-  };
+  }, [id, answers, navigate]);
 
   useEffect(() => {
-    if (timeLeft <= 0 && exam) {
-      handleSubmit();
-      return;
-    }
-    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    if (!exam || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
+    }, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, exam]);
+  }, [exam]);
+
+  useEffect(() => {
+    if (exam && timeLeft === 0) {
+      handleSubmit();
+    }
+  }, [exam, timeLeft, handleSubmit]);
 
   const handleAnswer = (optionText) => {
     const newAnswers = [...answers];
@@ -169,17 +237,46 @@ const ExamWindow = () => {
     setAnswers(newAnswers);
   };
 
-  const handleSubmit = async () => {
-    try {
-      await api.post('/results/submit', { examId: id, userAnswers: answers });
-      toast.success('Grid Transmission Successful');
-      navigate('/student/results');
-    } catch (err) {
-      toast.error('Transmission Failed. Retry Protocol Handled.');
-    }
-  };
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <Cpu size={48} className="text-brand-600 mb-4" />
+          <h2 className="text-sm font-black tracking-[0.3em] uppercase text-slate-500">Initializing Secure Session</h2>
+        </div>
+      </div>
+    );
+  }
 
-  if (!exam) return null;
+  if (!exam) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 rounded-2xl bg-brand-600/10 flex items-center justify-center mb-6 border border-brand-500/20">
+            <BookOpen size={32} className="text-brand-500 animate-bounce" />
+          </div>
+          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-slate-500">Decrypting Exam Matrix</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (!exam.questions || exam.questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-8">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="w-24 h-24 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle size={40} className="text-rose-500" />
+          </div>
+          <h2 className="text-3xl font-black tracking-tighter uppercase italic text-white">No Questions Found</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] leading-relaxed">This exam schedule has been created, but no assessment nodes have been attached to it yet. Please contact your administrator.</p>
+          <button onClick={() => navigate('/student/exams')} className="mt-8 px-10 py-4 bg-white text-slate-900 hover:bg-slate-200 transition-colors rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl">
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentQ = exam.questions[currentIdx];
   const formatTime = (seconds) => {
@@ -296,7 +393,13 @@ const ExamWindow = () => {
         {/* HUD Sidebar */}
         <aside className="w-full lg:w-[400px] space-y-8">
           <div className="glass-dark rounded-[40px] p-8 border border-white/10 overflow-hidden relative group">
-            {exam?.settings?.requireCamera && <CameraProctor />}
+            {exam?.settings?.requireCamera && <CameraProctor 
+                onViolation={handleViolation} 
+                socket={socket} 
+                userEmail={user.email} 
+                examName={exam.name}
+                examId={id} 
+              />}
             {!exam?.settings?.requireCamera && (
               <div className="aspect-video bg-slate-900 rounded-3xl flex flex-col items-center justify-center text-slate-700 gap-4 border border-white/5">
                 <Camera size={48} className="opacity-10" />

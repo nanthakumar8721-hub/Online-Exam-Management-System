@@ -54,6 +54,10 @@ io.on('connection', (socket) => {
     io.to('monitoring-room').emit('student-alert', data);
   });
 
+  socket.on('video-frame', (data) => {
+    io.to('monitoring-room').emit('video-frame', data);
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });

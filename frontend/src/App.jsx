@@ -30,6 +30,7 @@ import StaffSchedules from './pages/invigilator/Schedules';
 import OrgAdminDashboard from './pages/org_admin/Dashboard';
 import OrgMembers from './pages/org_admin/Members';
 import OrgAdminSchedules from './pages/org_admin/Schedules';
+import ExamQuestions from './pages/org_admin/ExamQuestions';
 
 // Shared
 import Settings from './pages/Settings';
@@ -76,11 +77,13 @@ function App() {
             <Route path="staff/questions" element={<StaffQuestions />} />
             <Route path="staff/monitor" element={<Monitor />} />
             <Route path="staff/schedules" element={<StaffSchedules />} />
+            <Route path="staff/exams/:id/questions" element={<ExamQuestions />} />
 
             {/* Org Admin Routes */}
             <Route path="org" element={<OrgAdminDashboard />} />
             <Route path="org/members" element={<OrgMembers />} />
             <Route path="org/schedules" element={<OrgAdminSchedules />} />
+            <Route path="org/exams/:id/questions" element={<ExamQuestions />} />
 
             {/* Common Routes */}
             <Route path="settings" element={<Settings />} />

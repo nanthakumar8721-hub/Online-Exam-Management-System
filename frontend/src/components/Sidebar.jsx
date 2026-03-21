@@ -47,6 +47,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     ],
     org_admin: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/org' },
+      { name: 'Schedules', icon: Calendar, path: '/org/schedules' },
       { name: 'Members', icon: Users, path: '/org/members' },
       { name: 'Settings', icon: Settings, path: '/settings' },
     ]

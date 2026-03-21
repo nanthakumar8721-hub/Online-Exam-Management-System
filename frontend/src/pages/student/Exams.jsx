@@ -31,8 +31,8 @@ const StudentExams = () => {
     <div className="space-y-12 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">Access Nodes</h1>
-          <p className="text-slate-500 font-medium italic uppercase tracking-widest text-[10px]">Secure gateways to active assessment protocols</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight italic uppercase">Exams</h1>
+          <p className="text-slate-500 font-medium italic uppercase tracking-widest text-[10px]">Access your scheduled exams here</p>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ const StudentExams = () => {
                 isUpcoming ? 'bg-brand-600 text-white' :
                   'bg-slate-200 text-slate-600'
                 }`}>
-                {isOngoing ? 'Access Live' : isUpcoming ? 'Locked' : 'Link Expired'}
+                {isOngoing ? 'Start Exam' : isUpcoming ? 'Upcoming' : 'Expired'}
               </div>
 
               <div className="flex justify-between items-start mb-8">
@@ -76,6 +76,17 @@ const StudentExams = () => {
                   </div>
                   <span className="truncate">{startDate.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
                 </div>
+                {exam.postponedDescription && (
+                    <div className="flex items-center text-rose-500 text-xs font-bold gap-4 pt-2">
+                        <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500 group-hover:bg-rose-100 transition-colors">
+                            <AlertCircle size={16} />
+                        </div>
+                        <div className="flex-1 leading-tight">
+                            <p className="text-[9px] uppercase tracking-[0.2em] text-rose-400 mb-0.5">Postponed Reason</p>
+                            <span className="truncate block">{exam.postponedDescription}</span>
+                        </div>
+                    </div>
+                )}
               </div>
 
               {isOngoing ? (
@@ -83,7 +94,7 @@ const StudentExams = () => {
                   onClick={() => navigate(`/exam/${exam._id}`)}
                   className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-600 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-xl"
                 >
-                  <Play size={16} fill="currentColor" /> Enter Protocol
+                  <Play size={16} fill="currentColor" /> Start Now
                 </button>
               ) : isUpcoming ? (
                 <button disabled className="w-full py-5 bg-slate-50 text-slate-400 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] border border-slate-100 cursor-not-allowed">
@@ -106,8 +117,8 @@ const StudentExams = () => {
         {exams.length === 0 && !loading && (
           <div className="col-span-full py-32 text-center glass-premium rounded-[64px] border-dashed border-2 border-slate-200">
             <Cpu className="text-slate-200 mx-auto mb-8 animate-pulse" size={48} />
-            <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tighter uppercase italic">No Nodes Detected</h3>
-            <p className="text-slate-400 font-medium uppercase tracking-widest text-xs">Awaiting session initialization from Command.</p>
+            <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tighter uppercase italic">No Exams Found</h3>
+            <p className="text-slate-400 font-medium uppercase tracking-widest text-xs">You don't have any exams scheduled right now.</p>
           </div>
         )}
       </div>

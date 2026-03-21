@@ -24,6 +24,10 @@ const ExamSchema = new mongoose.Schema({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming'
   },
+  postponedDescription: {
+    type: String,
+    default: ''
+  },
   questions: [{
     type: mongoose.Schema.ObjectId,
     ref: 'Question'

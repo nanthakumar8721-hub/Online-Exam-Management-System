@@ -4,12 +4,8 @@ import { BookOpen, Trophy, Clock, AlertCircle, ChevronRight, BarChart, Rocket, Z
 import { useNavigate } from 'react-router-dom';
 
 const StudentDashboard = () => {
-  const [stats, setStats] = useState({ attempted: 12, avgScore: 85, upcoming: 3 });
-  const [recentResults, setRecentResults] = useState([
-    { id: 1, name: 'Advanced Mathematics', score: 92, date: '2026-03-05' },
-    { id: 2, name: 'Theoretical Physics', score: 78, date: '2026-03-01' },
-    { id: 3, name: 'Neural Networks', score: 88, date: '2026-02-25' },
-  ]);
+  const [stats, setStats] = useState({ attempted: 0, avgScore: 0, upcoming: 0 });
+  const [recentResults, setRecentResults] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,21 +25,21 @@ const StudentDashboard = () => {
   }, []);
 
   const statCards = [
-    { name: 'Assessments', value: stats.attempted, icon: BookOpen, gradient: 'from-blue-600 to-indigo-600' },
-    { name: 'Average Proficiency', value: `${stats.avgScore}%`, icon: Target, gradient: 'from-emerald-600 to-teal-600' },
-    { name: 'Pending Tasks', value: stats.upcoming, icon: Zap, gradient: 'from-orange-600 to-amber-600' },
+    { name: 'Total Exams', value: stats.attempted, icon: BookOpen, gradient: 'from-blue-600 to-indigo-600' },
+    { name: 'Average Score', value: `${stats.avgScore}%`, icon: Target, gradient: 'from-emerald-600 to-teal-600' },
+    { name: 'Upcoming Exams', value: stats.upcoming, icon: Zap, gradient: 'from-orange-600 to-amber-600' },
   ];
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Academic Pulse</h1>
-          <p className="text-slate-500 font-medium">Monitoring your learning trajectory</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 font-medium">View your progress and upcoming exams</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/student/exams')} className="btn-premium">
-            <Rocket size={18} /> New Assessment
+            <Rocket size={18} /> Take Exam
           </button>
         </div>
       </div>
@@ -98,13 +94,13 @@ const StudentDashboard = () => {
         <div className="space-y-8">
           <div className="glass-dark rounded-[40px] p-10 text-white relative overflow-hidden group">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-600/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-            <h3 className="text-2xl font-black mb-3 tracking-tight">Ready for Excellence?</h3>
-            <p className="text-slate-400 font-medium text-sm mb-8 leading-relaxed max-w-[240px]">Synchronize your knowledge grid and initialize next assessment phase.</p>
+            <h3 className="text-2xl font-black mb-3 tracking-tight">Ready for your next exam?</h3>
+            <p className="text-slate-400 font-medium text-sm mb-8 leading-relaxed max-w-[240px]">Test your knowledge and view your upcoming schedule.</p>
             <button
               onClick={() => navigate('/student/exams')}
               className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-95 shadow-2xl shadow-black/20"
             >
-              Launch Assessment
+              View Exams
             </button>
           </div>
 
@@ -114,8 +110,8 @@ const StudentDashboard = () => {
                 <AlertCircle size={24} />
               </div>
               <div>
-                <h4 className="font-black text-slate-900 text-lg tracking-tight">Proctoring Protocol</h4>
-                <p className="text-slate-500 font-medium text-sm leading-relaxed mt-1">Ensure biometric and network stability before grid initialization. AI proctoring is active.</p>
+                <h4 className="font-black text-slate-900 text-lg tracking-tight">Exam Guidelines</h4>
+                <p className="text-slate-500 font-medium text-sm leading-relaxed mt-1">Make sure you have a stable network and your camera is on. AI proctoring is enabled to ensure fair testing.</p>
               </div>
             </div>
           </div>

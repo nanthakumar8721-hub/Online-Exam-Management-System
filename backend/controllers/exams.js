@@ -158,3 +158,65 @@ exports.addQuestionToExam = async (req, res, next) => {
     res.status(400).json({ success: false, error: err.message });
   }
 };
+
+// @desc    Add multiple questions to exam
+// @route   POST /api/v1/exams/:id/questions/bulk
+// @access  Private/Admin/Staff
+exports.addMultipleQuestionsToExam = async (req, res, next) => {
+  try {
+    const exam = await Exam.findById(req.params.id);
+    if (!exam) {
+      return res.status(404).json({ success: false, error: 'Exam not found' });
+    }
+
+    const { questions } = req.body;
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ success: false, error: 'Please provide an array of questions' });
+    }
+
+    const questionsWithSubject = questions.map(q => ({
+      ...q,
+      subject: exam.subject
+    }));
+
+    const createdQuestions = await Question.insertMany(questionsWithSubject);
+    const questionIds = createdQuestions.map(q => q._id);
+
+    exam.questions.push(...questionIds);
+    await exam.save();
+
+    res.status(201).json({ success: true, data: createdQuestions });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Remove question from exam
+// @route   DELETE /api/v1/exams/:id/questions/:questionId
+// @access  Private/Admin/Staff
+exports.removeQuestionFromExam = async (req, res, next) => {
+  try {
+    const { id, questionId } = req.params;
+    const exam = await Exam.findById(id);
+
+    if (!exam) {
+      return res.status(404).json({ success: false, error: 'Exam not found' });
+    }
+
+    // Check if question exists in exam
+    if (!exam.questions.includes(questionId)) {
+        return res.status(400).json({ success: false, error: 'Question not found in this exam' });
+    }
+    
+    // Remove from exam's questions array
+    exam.questions = exam.questions.filter(q => q.toString() !== questionId);
+    await exam.save();
+
+    // Optionally delete from Question collection if they aren't reused
+    // await Question.findByIdAndDelete(questionId);
+
+    res.status(200).json({ success: true, data: {} });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};

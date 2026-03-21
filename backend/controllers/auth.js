@@ -155,24 +155,6 @@ exports.updatePassword = async (req, res, next) => {
       return res.status(401).json({ success: false, error: 'Password is incorrect' });
     }
 
-    // OTP Validation for staff/student
-    if (['student', 'staff'].includes(user.role)) {
-      if (!req.body.otp) {
-        return res.status(400).json({ success: false, error: 'Please provide the OTP sent to your email' });
-      }
-
-      // Hash the provided OTP to compare
-      const hashedOtp = crypto.createHash('sha256').update(req.body.otp).digest('hex');
-
-      if (hashedOtp !== user.passwordChangeOtp || user.passwordChangeOtpExpire < Date.now()) {
-        return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
-      }
-
-      // Clear OTP fields
-      user.passwordChangeOtp = undefined;
-      user.passwordChangeOtpExpire = undefined;
-    }
-
     user.password = req.body.newPassword;
     await user.save();
 

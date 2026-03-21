@@ -18,10 +18,6 @@ const Settings = () => {
         confirmPassword: '',
     });
 
-    const [otpSent, setOtpSent] = useState(false);
-    const [otpData, setOtpData] = useState({ otp: '' });
-    const [requestingOtp, setRequestingOtp] = useState(false);
-
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -38,22 +34,6 @@ const Settings = () => {
         }
     };
 
-    const handleRequestOtp = async (e) => {
-        e.preventDefault();
-        setRequestingOtp(true);
-        try {
-            await api.post('/auth/request-password-otp');
-            toast.success('OTP dispatched to your communication node', {
-                style: { borderRadius: '16px', background: '#0f172a', color: '#fff' }
-            });
-            setOtpSent(true);
-        } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to initialize transmission');
-        } finally {
-            setRequestingOtp(false);
-        }
-    };
-
     const handleChangePassword = async (e) => {
         e.preventDefault();
         if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -65,16 +45,10 @@ const Settings = () => {
                 currentPassword: passwordData.currentPassword,
                 newPassword: passwordData.newPassword
             };
-            
-            if (['student', 'staff'].includes(user?.role)) {
-                payload.otp = otpData.otp;
-            }
 
             await api.put('/auth/updatepassword', payload);
             toast.success('Identity Secured - Password Changed');
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-            setOtpData({ otp: '' });
-            setOtpSent(false);
         } catch (err) {
             toast.error(err.response?.data?.error || 'Password Security Breach - Failed');
         } finally {
@@ -144,35 +118,7 @@ const Settings = () => {
                         <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">Access Key</h2>
                     </div>
 
-                    {['student', 'staff'].includes(user?.role) && !otpSent ? (
-                        <div className="space-y-6">
-                            <p className="text-sm text-slate-500 font-bold mb-4">To update your access key, you must verify your identity. An authorization token will be dispatched to your email.</p>
-                            <button
-                                onClick={handleRequestOtp}
-                                disabled={requestingOtp}
-                                className="w-full py-4 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest hover:bg-brand-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
-                            >
-                                {requestingOtp ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Mail size={18} />}
-                                Request Auth Token
-                            </button>
-                        </div>
-                    ) : (
                         <form onSubmit={handleChangePassword} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                            {['student', 'staff'].includes(user?.role) && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Authorization Token (OTP)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full bg-slate-50 border-2 border-transparent rounded-[24px] py-4 px-6 focus:bg-white focus:border-rose-500 outline-none transition-all font-bold text-slate-900 tracking-widest placeholder:tracking-normal placeholder:font-medium text-center text-lg"
-                                        value={otpData.otp}
-                                        onChange={e => setOtpData({ otp: e.target.value })}
-                                        required
-                                        placeholder="······"
-                                        maxLength="6"
-                                    />
-                                    <p className="text-[10px] font-bold text-slate-400 ml-1 text-center">Token expires in 10 minutes</p>
-                                </div>
-                            )}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Valid Protocol (Current)</label>
                                 <input
@@ -211,7 +157,6 @@ const Settings = () => {
                                 <RefreshCcw size={18} /> Update Key
                             </button>
                         </form>
-                    )}
                 </div>
             </div>
 

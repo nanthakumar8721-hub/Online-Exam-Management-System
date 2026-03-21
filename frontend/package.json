@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
     "@tailwindcss/vite": "^4.2.1",
+    "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.13.6",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
